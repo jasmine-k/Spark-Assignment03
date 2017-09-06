@@ -1,31 +1,23 @@
 package edu.knoldus
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.{Milliseconds, StreamingContext}
+import org.apache.spark.SparkConf
 
 object Stream extends App {
   Logger.getLogger("org").setLevel(Level.OFF)
 
   val conf = new SparkConf().setMaster("local[*]").setAppName("Custom Receiver Demo")
-  val streamingContext = new StreamingContext(conf, Seconds(2))
+  val streamingContext = new StreamingContext(conf, Milliseconds(2100))
 
   val customReceiverStream = streamingContext.receiverStream(new CustomReceiver)
 
-  /*val words: DStream[String] = customReceiverStream.flatMap{a =>
-    println(a + "akshansh")
-    a.split(" ")}*/
+  customReceiverStream.foreachRDD { a =>
+    println(a.collect().toList)
+  }
 
-  // val windowedWords = words.reduceByWindow((a: String, b: String) => (a + b), Seconds(10), Seconds(4))
-  // words.print()
-  //customReceiverStream.print(_)
-  var i=0
-  customReceiverStream.foreachRDD{a =>
-    println(".................................."+i)
-    i+=1
-    println(a.collect().toList)}
-
+  val numberOfValues = customReceiverStream.count()
+  numberOfValues.foreachRDD(result => println("Number of records are : " + result.collect().mkString("\n")))
   streamingContext.start()
   streamingContext.awaitTermination()
 

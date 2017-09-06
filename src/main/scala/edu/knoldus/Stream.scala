@@ -12,8 +12,8 @@ object Stream extends App {
 
   val customReceiverStream = streamingContext.receiverStream(new CustomReceiver)
 
-  customReceiverStream.foreachRDD { a =>
-    println(a.collect().toList)
+  customReceiverStream.foreachRDD { data =>
+    println(data.collect().toList)
   }
 
   val numberOfValues = customReceiverStream.count()
